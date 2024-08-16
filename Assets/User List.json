@@ -1,0 +1,22 @@
+{
+    "userDatas": [
+        {
+            "name": "박원석",
+            "age": 44,
+            "job": "Teacher",
+            "isMan": true
+        },
+        {
+            "name": "장유진",
+            "age": 38,
+            "job": "Student",
+            "isMan": true
+        },
+        {
+            "name": "허지미",
+            "age": 24,
+            "job": "Student",
+            "isMan": false
+        }
+    ]
+}

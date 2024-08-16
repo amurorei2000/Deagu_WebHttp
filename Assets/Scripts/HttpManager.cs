@@ -5,6 +5,8 @@ using UnityEngine.Networking;   // http 통신을 위한 네임 스페이스
 using System.Text;      // json, csv같은 문서 형태의 인코딩(UTF-8)을 위한 네임 스페이스
 using UnityEngine.UI;
 using System;
+using System.IO;
+using UnityEditor;
 
 public class HttpManager : MonoBehaviour
 {
@@ -14,7 +16,10 @@ public class HttpManager : MonoBehaviour
     public Button btn_get;
     public Button btn_getImage;
     public Button btn_getJson;
-    //public RequestImage reqImageData;
+    public Button btn_postJson;
+    public Button btn_postImage;
+    public List<InputField> userInputs = new List<InputField>();
+    public Toggle freeUser;
 
     public void Get()
     {
@@ -116,7 +121,7 @@ public class HttpManager : MonoBehaviour
             print(binaries.Length);
             if (binaries.Length > 0)
             {
-                Texture2D texture = new Texture2D(184, 273);
+                Texture2D texture = new Texture2D(2, 2);
 
                 // byte 배열로 된 raw 데이터를 텍스쳐 형태로 변환해서 texture2D 인스턴스로 변환한다.
                 texture.LoadImage(binaries);
@@ -135,6 +140,87 @@ public class HttpManager : MonoBehaviour
 
         btn_getJson.interactable = true;
     }
+
+    // 서버에 Json 데이터를 Post하는 함수
+    public void PostJson()
+    {
+        btn_postJson.interactable = false;
+        StartCoroutine(PostJsonRequest(url));
+    }
+
+    IEnumerator PostJsonRequest(string url)
+    {
+        // 사용자의 입력 정보를 Json 데이터로 변환하기
+        JoinUserData userData = new JoinUserData();
+        userData.id = Convert.ToInt32(userInputs[0].text);
+        userData.password = userInputs[1].text;
+        userData.nickName = userInputs[2].text;
+        userData.freeAccount = freeUser.isOn;
+        string userJsonData = JsonUtility.ToJson(userData, true);
+        byte[] jsonBins = Encoding.UTF8.GetBytes(userJsonData);
+
+        // Post를 하기 위한 준비를 한다.
+        UnityWebRequest request = new UnityWebRequest(url, "POST");
+        request.SetRequestHeader("Content-Type", "application/json");
+        request.uploadHandler = new UploadHandlerRaw(jsonBins);
+        request.downloadHandler = new DownloadHandlerBuffer();
+
+        // 서버에 Post를 전송하고 응답이 올 때까지 기다린다.
+        yield return request.SendWebRequest();
+
+        if(request.result == UnityWebRequest.Result.Success)
+        {
+            // 다운로드 핸들러에서 텍스트 값을 받아서 UI에 출력한다.
+            string response = request.downloadHandler.text;
+            text_response.text = response;
+            Debug.LogWarning(response);
+        }
+        else
+        {
+            text_response.text = request.error;
+            Debug.LogError(request.error);
+        }
+
+        btn_postJson.interactable = true;
+    }
+
+    public void PostImage()
+    {
+        btn_postImage.interactable = false;
+        StartCoroutine(PostImageRequest("http://mtvs.helloworldlabs.kr:7771/api/byte"));
+    }
+
+    IEnumerator PostImageRequest(string url)
+    {
+        //string path = "D:/UnityProjects/TPS/Assets/Materials/Icon.png";
+        string path = EditorUtility.OpenFilePanel("이미지 파일 찾기", "D:/", "png, jpg, bmp");
+
+        // 바이트 배열로 데이터를 읽어올 때
+        byte[] imageBinaries = File.ReadAllBytes(path);
+
+        UnityWebRequest request = new UnityWebRequest(url, "POST");
+        request.SetRequestHeader("Content-Type", "image/png");
+        //request.SetRequestHeader("Content-Type", "multipart/form-data");
+        request.uploadHandler = new UploadHandlerRaw(imageBinaries);
+        request.downloadHandler = new DownloadHandlerBuffer();
+
+        yield return request.SendWebRequest();
+
+        if(request.result == UnityWebRequest.Result.Success)
+        {
+            string response = request.downloadHandler.text;
+            text_response.text = response;
+            print(response);
+        }
+        else
+        {
+            text_response.text = $"{request.responseCode} - {request.error}";
+            Debug.LogError($"{request.responseCode} - {request.error}");
+        }
+
+        btn_postImage.interactable = true;
+    }
+
 }
 
 
@@ -142,4 +228,13 @@ public class HttpManager : MonoBehaviour
 public struct RequestImage
 {
     public string img;
+}
+
+[System. Serializable]
+public struct JoinUserData
+{
+    public int id;
+    public string password;
+    public string nickName;
+    public bool freeAccount;
 }

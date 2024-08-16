@@ -23,6 +23,13 @@ public struct UserData
     }
 }
 
+// Json 배열
+[System.Serializable]
+public struct UserDataList
+{
+    public List<UserData> userDatas;
+}
+
 
 public class JsonParser : MonoBehaviour
 {
@@ -60,6 +67,31 @@ public class JsonParser : MonoBehaviour
         //{
         //    readUserData = JsonUtility.FromJson<UserData>(readString);
         //}
+        #endregion
+
+        #region json 리스트 만들기
+        //// 1. 구조체 데이터 여러개 만들기
+        //UserData user1 = new UserData("박원석", 44, "Teacher", true);
+        //UserData user2 = new UserData("장유진", 38, "Student", true);
+        //UserData user3 = new UserData("허지미", 24, "Student", false);
+
+        //// 2. 리스트에 구조체 데이터들을 담기
+        //UserDataList userList = new UserDataList();
+        //userList.userDatas = new List<UserData>();
+        //userList.userDatas.Add(user1);
+        //userList.userDatas.Add(user2);
+        //userList.userDatas.Add(user3);
+
+        //// 3. 구조체 리스트를 json으로 변환하기
+        //string userListJson = JsonUtility.ToJson(userList, true);
+        //print(userListJson);
+
+        //// 4. json을 바이트 배열로 변환해서 파일로 저장하기
+        //byte[] userListBins = Encoding.UTF8.GetBytes(userListJson);
+        //FileStream fs = new FileStream(Application.dataPath + "/User List.json", FileMode.OpenOrCreate, FileAccess.Write);
+        //fs.Write(userListBins);
+        //print("저장 완료!");
+        //fs.Close();
         #endregion
 
     }
